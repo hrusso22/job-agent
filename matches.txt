@@ -1,0 +1,15 @@
+
+[2026-06-16 23:17] 6/10 — Junior Software Engineer at StatusNeo
+Reason: Your EE background and Python/C skills align with junior software engineering, but your experience is more network/systems-focused than pure software development, making you a partial fit.
+Link: https://remoteOK.com/remote-jobs/remote-junior-software-engineer-statusneo-1133251
+--------------------------------------------------
+
+[2026-06-16 23:17] 6/10 — Member of Technical Staff Production at Slingshot
+Reason: The 'embedded', 'python', 'technical', and 'engineer' tags align with your EE background and skills, but the broad mix of non-technical tags (marketing, content writing, virtual assistant) creates uncertainty about the role's actual technical depth and relevance to your systems/network engineering experience.
+Link: https://remoteOK.com/remote-jobs/remote-member-of-technical-staff-production-slingshot-1133205
+--------------------------------------------------
+
+[2026-06-16 23:18] 8/10 — Network Engineer Factory Systems and Operational Technology at Anduril Industries
+Reason: Your Network Engineer internship at Nextlink and Systems Engineer experience at Poly directly align with this OT/factory networking role, and your EE degree with hardware/embedded systems skills complements the operational technology focus at Anduril.
+Link: https://remoteOK.com/remote-jobs/remote-network-engineer-factory-systems-and-operational-technology-anduril-industries-1131334
+--------------------------------------------------
