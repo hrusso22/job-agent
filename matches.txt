@@ -13,3 +13,18 @@ Link: https://remoteOK.com/remote-jobs/remote-member-of-technical-staff-producti
 Reason: Your Network Engineer internship at Nextlink and Systems Engineer experience at Poly directly align with this OT/factory networking role, and your EE degree with hardware/embedded systems skills complements the operational technology focus at Anduril.
 Link: https://remoteOK.com/remote-jobs/remote-network-engineer-factory-systems-and-operational-technology-anduril-industries-1131334
 --------------------------------------------------
+
+[2026-06-16 23:57] 6/10 — Junior Software Engineer at StatusNeo
+Reason: Your EE background and Python/C skills are relevant for a junior software engineering role, but your experience skews more toward systems/network engineering than pure software development, which may be a partial fit depending on the specific responsibilities.
+Link: https://remoteOK.com/remote-jobs/remote-junior-software-engineer-statusneo-1133251
+--------------------------------------------------
+
+[2026-06-16 23:57] 6/10 — Member of Technical Staff Production at Slingshot
+Reason: The 'embedded', 'python', 'engineer', and 'technical' tags align with your EE background and skills, but the broad mix of non-technical tags makes it unclear if this role fully leverages your systems/network engineering experience.
+Link: https://remoteOK.com/remote-jobs/remote-member-of-technical-staff-production-slingshot-1133205
+--------------------------------------------------
+
+[2026-06-16 23:58] 8/10 — Network Engineer Factory Systems and Operational Technology at Anduril Industries
+Reason: Your networking internships (Nextlink), systems engineering experience (Poly), and hardware/embedded systems skills align well with this factory systems and OT network engineering role, though defense/industrial OT experience would strengthen the fit further.
+Link: https://remoteOK.com/remote-jobs/remote-network-engineer-factory-systems-and-operational-technology-anduril-industries-1131334
+--------------------------------------------------

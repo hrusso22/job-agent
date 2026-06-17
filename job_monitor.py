@@ -5,6 +5,7 @@ import datetime
 import os
 import json
 import requests
+from database import init_db, job_exists, save_job
 from anthropic import Anthropic
 
 client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
@@ -43,16 +44,7 @@ def score_job(job_title, company, tags):
     except:
         return 0, "Could not parse response"
 
-
-def save_match(job_title, company, score, reason, url):
-    with open("matches.txt", "a") as f:
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        f.write(f"\n[{timestamp}] {score}/10 — {job_title} at {company}\n")
-        f.write(f"Reason: {reason}\n")
-        f.write(f"Link: {url}\n")
-        f.write("-" * 50 + "\n")
-
-def search_jobs(job_title, seen_jobs):
+def search_jobs(job_title):
     print("\nSearching for", job_title, "jobs...")
     
     url = f"https://remoteok.com/api?tag={job_title.replace(' ', '+')}"
@@ -67,27 +59,24 @@ def search_jobs(job_title, seen_jobs):
             for job in jobs[1:]:
                 title = job.get('position', '').lower()
                 tags = job.get('tags', [])
+                job_url = job.get('url', '').lower()
                 is_relevant = any(skill in title for skill in my_skills)
-                if is_relevant:
-                    job_url = job.get('url', '')
-                if is_relevant and job_url not in seen_jobs:
-                    seen_jobs.add(job_url)
+                
+                if is_relevant and not job_exists(job_url):
                     score, reason = score_job(title, job.get('company', ''), tags)
                     if score >= 6:
                         matches += 1
                         print(f"\n{matches}. {job.get('position')} at {job.get('company')}")
                         print(f"   Score: {score}/10 — {reason}")
-                        print(f"   Link: {job.get('url', 'No link')}")
-                        save_match(job.get('position'), job.get('company'), score, reason, job.get('url', ''))
+                        print(f"   Link: {job_url}")
+                        save_job(job.get('position'), job.get('company'), score, reason, job_url)
+            
             print(f"\nTotal strong matches: {matches}")
 
 print("Job monitor starting for", name, "in", location)
-
-search_terms = ["systems engineer", "network engineer", "electrical engineer", "hardware engineer"]
+init_db()
 
 search_terms = ["engineer", "embedded", "hardware", "networking", "systems"]
 
-seen_jobs = set()
 for term in search_terms:
-    search_jobs(term, seen_jobs)
-    
+    search_jobs(term)
