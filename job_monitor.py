@@ -1,10 +1,10 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-import datetime
 import os
 import json
 import requests
+import feedparser
 from database import init_db, job_exists, save_job
 from anthropic import Anthropic
 
@@ -44,39 +44,141 @@ def score_job(job_title, company, tags):
     except:
         return 0, "Could not parse response"
 
-def search_jobs(job_title):
-    print("\nSearching for", job_title, "jobs...")
-    
-    url = f"https://remoteok.com/api?tag={job_title.replace(' ', '+')}"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    response = requests.get(url, headers=headers)
-    
-    if response.status_code == 200:
-        jobs = response.json()
-        if len(jobs) > 1:
-            print("\n--- Relevant Jobs ---")
-            matches = 0
-            for job in jobs[1:]:
-                title = job.get('position', '').lower()
-                tags = job.get('tags', [])
-                job_url = job.get('url', '').lower()
-                is_relevant = any(skill in title for skill in my_skills)
-                
-                if is_relevant and not job_exists(job_url):
-                    score, reason = score_job(title, job.get('company', ''), tags)
-                    if score >= 6:
-                        matches += 1
-                        print(f"\n{matches}. {job.get('position')} at {job.get('company')}")
-                        print(f"   Score: {score}/10 — {reason}")
-                        print(f"   Link: {job_url}")
-                        save_job(job.get('position'), job.get('company'), score, reason, job_url)
-            
-            print(f"\nTotal strong matches: {matches}")
+def process_job(title, company, tags, url):
+    title_lower = title.lower()
+    url_lower = url.lower()
+    is_relevant = any(skill in title_lower for skill in my_skills)
 
-print("Job monitor starting for", name, "in", location)
+    if is_relevant and not job_exists(url_lower):
+        score, reason = score_job(title_lower, company, tags)
+        if score >= 6:
+            print(f"\n  ✓ {title} at {company}")
+            print(f"    Score: {score}/10 — {reason}")
+            print(f"    Link: {url}")
+            save_job(title, company, score, reason, url_lower)
+            return 1
+    return 0
+
+def fetch_remoteok():
+    print("\n[RemoteOK] Searching...")
+    search_terms = ["engineer", "embedded", "hardware", "networking", "systems"]
+    total = 0
+
+    for term in search_terms:
+        url = f"https://remoteok.com/api?tag={term.replace(' ', '+')}"
+        headers = {"User-Agent": "Mozilla/5.0"}
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code == 200:
+                jobs = response.json()
+                for job in jobs[1:]:
+                    title = job.get('position', '')
+                    company = job.get('company', '')
+                    tags = job.get('tags', [])
+                    job_url = job.get('url', '')
+                    if title and job_url:
+                        total += process_job(title, company, tags, job_url)
+        except Exception as e:
+            print(f"  RemoteOK error: {e}")
+
+    print(f"[RemoteOK] Done — {total} new matches")
+
+def fetch_arbeitnow():
+    print("\n[Arbeitnow] Searching...")
+    search_terms = ["electrical engineer", "systems engineer",
+                    "network engineer", "hardware engineer"]
+    total = 0
+
+    for term in search_terms:
+        url = f"https://www.arbeitnow.com/api/job-board-api?search={term.replace(' ', '+')}&location=Austin"
+        try:
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                jobs = data.get('data', [])
+                for job in jobs:
+                    title = job.get('title', '')
+                    company = job.get('company_name', '')
+                    tags = job.get('tags', [])
+                    job_url = job.get('url', '')
+                    if title and job_url:
+                        total += process_job(title, company, tags, job_url)
+        except Exception as e:
+            print(f"  Arbeitnow error: {e}")
+
+    print(f"[Arbeitnow] Done — {total} new matches")
+
+def fetch_adzuna():
+    print("\n[Adzuna] Searching...")
+    search_terms = ["electrical engineer", "systems engineer",
+                    "network engineer", "hardware engineer"]
+    total = 0
+
+    app_id = os.environ.get("ADZUNA_APP_ID")
+    api_key = os.environ.get("ADZUNA_API_KEY")
+
+    for term in search_terms:
+        url = f"https://api.adzuna.com/v1/api/jobs/us/search/1?app_id={app_id}&app_key={api_key}&what={term.replace(' ', '+')}&where=Austin+TX&results_per_page=20"
+        try:
+            response = requests.get(url, timeout=10)
+            print(f"  Adzuna status: {response.status_code}")
+            if response.status_code == 200:
+                data = response.json()
+                jobs = data.get('results', [])
+                print(f"  Jobs returned: {len(jobs)}")
+                for job in jobs:
+                    title = job.get('title', '')
+                    company = job.get('company', {}).get('display_name', 'Unknown')
+                    job_url = job.get('redirect_url', '')
+                    if title and job_url:
+                        total += process_job(title, company, [], job_url)
+        except Exception as e:
+            print(f"  Adzuna error: {e}")
+
+    print(f"[Adzuna] Done — {total} new matches")
+
+def fetch_usajobs():
+    print("\n[USAJobs] Searching...")
+    search_terms = ["electrical engineer", "systems engineer",
+                    "network engineer", "hardware engineer"]
+    total = 0
+
+    headers = {
+        "Host": "data.usajobs.gov",
+        "User-Agent": "hrusso222@yahoo.com",
+        "Authorization-Key": os.environ.get("USAJOBS_API_KEY")
+    }
+
+    for term in search_terms:
+        url = f"https://data.usajobs.gov/api/search?Keyword={term.replace(' ', '+')}&LocationName=Austin,+TX&ResultsPerPage=25"
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            print(f"  USAJobs status: {response.status_code}")
+            if response.status_code == 200:
+                data = response.json()
+                jobs = data.get('SearchResult', {}).get('SearchResultItems', [])
+                print(f"  Jobs returned: {len(jobs)}")
+                for job in jobs:
+                    inner = job.get('MatchedObjectDescriptor', {})
+                    title = inner.get('PositionTitle', '')
+                    company = inner.get('OrganizationName', '')
+                    job_url = inner.get('PositionURI', '')
+                    if title and job_url:
+                        total += process_job(title, company, [], job_url)
+        except Exception as e:
+            print(f"  USAJobs error: {e}")
+
+    print(f"[USAJobs] Done — {total} new matches")
+
+# --- MAIN ---
+print(f"\nJob monitor starting for {name} in {location}")
+print("=" * 50)
 init_db()
 
-search_terms = ["engineer", "embedded", "hardware", "networking", "systems"]
+fetch_remoteok()
+fetch_arbeitnow()
+fetch_adzuna()
+fetch_usajobs()
 
-for term in search_terms:
-    search_jobs(term)
+print("\n" + "=" * 50)
+print("All sources checked.")
