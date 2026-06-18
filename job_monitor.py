@@ -44,7 +44,7 @@ def score_job(job_title, company, tags):
     except:
         return 0, "Could not parse response"
 
-def process_job(title, company, tags, url):
+def process_job(title, company, tags, url, date_posted=None):
     title_lower = title.lower()
     url_lower = url.lower()
     is_relevant = any(skill in title_lower for skill in my_skills)
@@ -55,7 +55,9 @@ def process_job(title, company, tags, url):
             print(f"\n  ✓ {title} at {company}")
             print(f"    Score: {score}/10 — {reason}")
             print(f"    Link: {url}")
-            save_job(title, company, score, reason, url_lower)
+            if date_posted:
+                print(f"    Posted: {date_posted}")
+            save_job(title, company, score, reason, url_lower, date_posted)
             return 1
     return 0
 
@@ -76,8 +78,9 @@ def fetch_remoteok():
                     company = job.get('company', '')
                     tags = job.get('tags', [])
                     job_url = job.get('url', '')
+                    date_posted = job.get('date', '')[:10]
                     if title and job_url:
-                        total += process_job(title, company, tags, job_url)
+                        total += process_job(title, company, tags, job_url, date_posted)
         except Exception as e:
             print(f"  RemoteOK error: {e}")
 
@@ -101,8 +104,9 @@ def fetch_arbeitnow():
                     company = job.get('company_name', '')
                     tags = job.get('tags', [])
                     job_url = job.get('url', '')
+                    date_posted = str(job.get('created_at', ''))[:10]
                     if title and job_url:
-                        total += process_job(title, company, tags, job_url)
+                        total += process_job(title, company, tags, job_url, date_posted)
         except Exception as e:
             print(f"  Arbeitnow error: {e}")
 
@@ -130,8 +134,9 @@ def fetch_adzuna():
                     title = job.get('title', '')
                     company = job.get('company', {}).get('display_name', 'Unknown')
                     job_url = job.get('redirect_url', '')
+                    date_posted = job.get('created', '')[:10]
                     if title and job_url:
-                        total += process_job(title, company, [], job_url)
+                        total += process_job(title, company, [], job_url, date_posted)
         except Exception as e:
             print(f"  Adzuna error: {e}")
 
@@ -163,8 +168,9 @@ def fetch_usajobs():
                     title = inner.get('PositionTitle', '')
                     company = inner.get('OrganizationName', '')
                     job_url = inner.get('PositionURI', '')
+                    date_posted = inner.get('PublicationStartDate', '')[:10]
                     if title and job_url:
-                        total += process_job(title, company, [], job_url)
+                        total += process_job(title, company, [], job_url, date_posted)
         except Exception as e:
             print(f"  USAJobs error: {e}")
 
